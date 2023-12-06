@@ -1,3 +1,4 @@
+from re import S
 from PyQt6.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QPushButton
 from PyQt6.QtGui import QIcon, QPixmap, QPainter
 from PyQt6.QtCore import (
@@ -122,41 +123,7 @@ class ButtonFrame(QFrame):
                         icon_size = int(self.button_size * 0.9)
                         button.setIconSize(QSize(icon_size, icon_size))
 
-    def eventFilter(self, obj, event: QEvent) -> bool:
-        if isinstance(obj, QPushButton):
-            if event.type() == QEvent.Type.EnabledChange:
-                if obj.isEnabled():
-                    self.animate_button(obj, True)
-                else:
-                    self.animate_button(obj, False)
-        return super().eventFilter(obj, event)
-
-    def animate_button(self, button: LetterButton, enlarge) -> None:
-        current_geometry = button.geometry()
-        if enlarge:
-            new_geometry = QRect(
-                current_geometry.x() - 5,
-                current_geometry.y() - 5,
-                current_geometry.width() + 10,
-                current_geometry.height() + 10,
-            )
-            button.enlarge_animation.setEndValue(new_geometry)
-            button.enlarge_animation.start()
-        else:
-            new_geometry = QRect(
-                current_geometry.x() + 5,
-                current_geometry.y() + 5,
-                current_geometry.width() - 10,
-                current_geometry.height() - 10,
-            )
-            button.shrink_animation.setEndValue(new_geometry)
-            button.shrink_animation.start()
-            new_geometry = QRect(
-                current_geometry.x() + 5,
-                current_geometry.y() + 5,
-                current_geometry.width() - 10,
-                current_geometry.height() - 10,
-            )
+    ### UPDATERS ###
 
     def update_button_appearance(self) -> None:
         last_letter = (
@@ -165,12 +132,21 @@ class ButtonFrame(QFrame):
             else None
         )
         for letter, button in self.buttons.items():
+            button: LetterButton  # Ensure button is of LetterButton type
             is_valid = self.interpolation_handler.is_valid_next_letter(
                 last_letter, letter
             )
             button.setEnabled(is_valid)
-            self.animate_button(button, is_valid)
+            if is_valid and not button.is_enlarged:
+                button.animate_enlarge()
+            elif not is_valid and button.is_enlarged:
+                button.animate_shrink()
 
     def update_button_frame_size(self) -> None:
         self.setFixedHeight(self.main_widget.height())
         self._update_letter_buttons_size()
+
+    ### EVENTS ###
+
+    def eventFilter(self, obj, event: QEvent) -> bool:
+        return super().eventFilter(obj, event)
