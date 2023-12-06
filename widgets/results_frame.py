@@ -24,9 +24,16 @@ class ResultsFrame(QFrame):
         self._setup_widgets()
         self._setup_layout()
         self._connect_events()
-        
-        self.interpolation_handler.sequenceUpdated.connect(self._update_sequence_display)
-        self.interpolation_handler.savedWordsUpdated.connect(self._update_saved_words_label)
+
+        self.interpolation_handler.sequenceUpdated.connect(
+            self._update_sequence_display
+        )
+        self.interpolation_handler.savedWordsUpdated.connect(
+            self._update_saved_words_label
+        )
+        self.interpolation_handler.firstLetterSelected.connect(
+            self._update_start_position_label
+        )
 
     def _setup_widgets(self) -> None:
         self.action_buttons = self._setup_action_buttons()
@@ -36,6 +43,10 @@ class ResultsFrame(QFrame):
         self.checkboxes = self._setup_checkboxes()
         self.saved_words_box = self._setup_saved_words_box()
 
+        self.type_a_word_label.setVisible(False)
+        self.typed_word_input.setVisible(False)
+        self.generate_button.setVisible(False)
+
     def _setup_checkboxes(self) -> None:
         self.auto_fill_checkbox = QCheckBox("Autofill Mode", self)
         self.circular_word_checkbox = QCheckBox("Circular Word", self)
@@ -44,14 +55,6 @@ class ResultsFrame(QFrame):
         self.auto_fill_checkbox.setFont(font)
         self.circular_word_checkbox.setFont(font)
         return checkboxes
-
-    def _connect_events(self) -> None:
-        self.clear_sequence_button.clicked.connect(self._clear_sequence)
-        self.save_sequence_button.clicked.connect(self._save_sequence)
-        self.clear_saved_button.clicked.connect(self._clear_saved)
-        self.copy_saved_button.clicked.connect(self._copy_saved_text)
-        self.generate_random_word_button.clicked.connect(self._generate_random_word)
-        self.auto_fill_checkbox.toggled.connect(self.interpolation_handler.set_auto_fill_mode)
 
     def _setup_line_edits(self) -> List[QLineEdit]:
         self.typed_word_input = QLineEdit(self)
@@ -127,23 +130,21 @@ class ResultsFrame(QFrame):
 
     def _setup_sequence_box(self) -> QTextEdit:
         sequence_text_edit = QTextEdit(self)  # Change this from QLineEdit to QTextEdit
-        sequence_text_edit.setReadOnly(True) 
+        sequence_text_edit.setReadOnly(True)
         sequence_text_edit.setFixedHeight(50)
         sequence_text_edit.setFont(QFont("Helvetica", 20))
         return sequence_text_edit
 
     def _setup_layout(self) -> QFrame:
-        
-        
         autofill_save_clear_layout = QHBoxLayout()
         autofill_save_clear_layout.addWidget(self.auto_fill_checkbox)
         autofill_save_clear_layout.addWidget(self.save_sequence_button)
         autofill_save_clear_layout.addWidget(self.clear_sequence_button)
-        
+
         typed_word_generate_button_layout = QHBoxLayout()
         typed_word_generate_button_layout.addWidget(self.typed_word_input)
         typed_word_generate_button_layout.addWidget(self.generate_button)
-        
+
         clear_copy_layout = QHBoxLayout()
         clear_copy_layout.addWidget(self.clear_saved_button)
         clear_copy_layout.addWidget(self.copy_saved_button)
@@ -175,21 +176,28 @@ class ResultsFrame(QFrame):
         self.type_a_word_label.setVisible(checked)
         self.typed_word_input.setVisible(checked)
         self.generate_button.setVisible(checked)
-        
+
     def _update_sequence_display(self) -> None:
-        sequence_str = ''.join([
-            f'<span style="color: {"red" if is_interpolated else "black"}">{letter}</span>' 
-            for letter, is_interpolated in self.interpolation_handler.get_sequence()
-        ])
+        sequence_str = "".join(
+            [
+                f'<span style="color: {"red" if is_interpolated else "black"}">{letter}</span>'
+                for letter, is_interpolated in self.interpolation_handler.get_sequence()
+            ]
+        )
         self.sequence_box.setHtml(sequence_str)
         self._update_end_positions_label()
 
     def _update_end_positions_label(self) -> None:
-        end_positions_str = ' '.join([
-            self.interpolation_handler.get_end_position(letter) 
-            for letter, _ in self.interpolation_handler.get_sequence()
-        ])
+        end_positions_str = " ".join(
+            [
+                self.interpolation_handler.get_end_position(letter)
+                for letter, _ in self.interpolation_handler.get_sequence()
+            ]
+        )
         self.end_positions_label.setText(end_positions_str)
+
+    def _update_start_position_label(self, letter: str) -> None:
+        self.start_position_label.setText(f"Start: {letter}")
 
     def _update_saved_words_label(self) -> None:
         self.saved_words_box.clear()
@@ -201,7 +209,7 @@ class ResultsFrame(QFrame):
                 ]
             )
             self.saved_words_box.append(formatted_word)
-            
+
     def _clear_sequence(self) -> None:
         self.interpolation_handler.clear_sequence()
         self.sequence_box.clear()
@@ -212,6 +220,11 @@ class ResultsFrame(QFrame):
         self.interpolation_handler.save_current_sequence()
         self._clear_sequence()
         self._update_saved_words_label()
+        self._reset_letter_buttons()
+
+    def _reset_letter_buttons(self) -> None:
+        for button in self.main_widget.letter_buttons.buttons.values():
+            button.set_enabled_and_style(True)
 
     def _clear_saved(self) -> None:
         self.interpolation_handler.clear_saved_words()
@@ -242,5 +255,3 @@ class ResultsFrame(QFrame):
                 button.setEnabled(True)
             else:
                 button.setEnabled(False)
-
-

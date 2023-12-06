@@ -11,7 +11,8 @@ from data.letter_data import positions, letters
 class InterpolationHandler(QObject):
     sequenceUpdated = pyqtSignal()
     savedWordsUpdated = pyqtSignal()
-
+    firstLetterSelected = pyqtSignal(str)
+    
     def __init__(self, main_widget: "MainWidget") -> None:
         super().__init__()
         self.main_widget = main_widget
@@ -22,21 +23,26 @@ class InterpolationHandler(QObject):
         self.auto_fill_mode: bool = False
 
     def update_sequence(self, letter: str) -> None:
-        if not self.sequence:
+        is_first_letter = not self.sequence
+        if is_first_letter:
             self.sequence.append((letter, False))
+            self.firstLetterSelected.emit(letter)  # Emit the signal with the first letter
         else:
-            last_letter, _ = self.sequence[-1]
-            if positions[last_letter][1] == positions[letter][0] or self.auto_fill_mode:
-                if (
-                    self.auto_fill_mode
-                    and positions[last_letter][1] != positions[letter][0]
-                ):
-                    interpolated_letter = self.find_interpolation(last_letter, letter)
-                    if interpolated_letter:
-                        self.sequence.append((interpolated_letter, True))
+            if not self.sequence:
                 self.sequence.append((letter, False))
             else:
-                return  # Invalid sequence, do nothing
+                last_letter, _ = self.sequence[-1]
+                if positions[last_letter][1] == positions[letter][0] or self.auto_fill_mode:
+                    if (
+                        self.auto_fill_mode
+                        and positions[last_letter][1] != positions[letter][0]
+                    ):
+                        interpolated_letter = self.find_interpolation(last_letter, letter)
+                        if interpolated_letter:
+                            self.sequence.append((interpolated_letter, True))
+                    self.sequence.append((letter, False))
+                else:
+                    return  # Invalid sequence, do nothing
 
         self.sequenceUpdated.emit()
         self.main_widget.letter_buttons.update_button_appearance()
@@ -83,6 +89,12 @@ class InterpolationHandler(QObject):
 
     def get_sequence(self) -> List[Tuple[str, bool]]:
         return self.sequence
+
+    def can_follow(self, letter: str) -> bool:
+        if not self.sequence:
+            return True
+        last_letter, _ = self.sequence[-1]
+        return positions[last_letter][1] == positions[letter][0]
 
     def get_end_position(self, letter: str) -> str:
         position = positions[letter][1]

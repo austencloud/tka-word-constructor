@@ -28,14 +28,14 @@ class ButtonFrame(QFrame):
         self.setFixedHeight(self.main_widget.height())
 
     def _init_letter_buttons_layout(self) -> None:
-        self.buttons: Dict[Letters, QPushButton] = {}
+        self.buttons: Dict[Letters, LetterButton] = {}
         letter_buttons_layout = QVBoxLayout()
         self.spacing = 10
         letter_buttons_layout.setSpacing(self.spacing)
         letter_buttons_layout.setAlignment(
             Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignCenter
         )
-        self.setContentsMargins(0, 0, 0, 0)
+        self.setContentsMargins(10, 10, 10, 10)
         letter_buttons_layout.setContentsMargins(0, 0, 0, 0)
         letter_rows = [
             # Type 1 - Dual-Shift
