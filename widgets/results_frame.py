@@ -71,6 +71,8 @@ class ResultsFrame(QFrame):
     def _setup_saved_words_box(self) -> QTextEdit:
         saved_words_box = QTextEdit(self)
         saved_words_box.setFixedHeight(150)  # Adjust height as needed
+        font = QFont("Helvetica", 18)  # Increase font size
+        saved_words_box.setFont(font)  # Set the font for the QTextEdit
         saved_words_box.setReadOnly(True)
         return saved_words_box
 

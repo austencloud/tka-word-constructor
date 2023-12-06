@@ -41,6 +41,7 @@ class InterpolationHandler(QObject):
                 return  # Invalid sequence, do nothing
 
         self.sequenceUpdated.emit()
+        self.main_widget.letter_buttons.update_button_appearance()
 
     def find_interpolation(self, start_letter: str, next_letter: str) -> str:
         for letter, pos in positions.items():
@@ -50,6 +51,15 @@ class InterpolationHandler(QObject):
             ):
                 return letter
         return None  # No interpolation found
+
+    def get_last_letter(self):
+        return self.sequence[-1][0] if self.sequence else None
+
+    def is_valid_next_letter(self, last_letter, next_letter):
+        if not last_letter:
+            return True
+        return positions[last_letter][1] == positions[next_letter][0] or self.auto_fill_mode
+
 
     def clear_sequence(self) -> None:
         self.sequence.clear()

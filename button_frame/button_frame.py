@@ -1,10 +1,19 @@
 from PyQt6.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QPushButton
 from PyQt6.QtGui import QIcon, QPixmap, QPainter, QFont
-from PyQt6.QtCore import QSize, Qt
+from PyQt6.QtCore import (
+    QPropertyAnimation,
+    QRect,
+    QSequentialAnimationGroup,
+    QEasingCurve,
+    Qt,
+    QSize,
+    QEvent,
+)
 from PyQt6.QtGui import QColor
 from PyQt6.QtSvg import QSvgRenderer
 from data.letter_data import letter_types
 from TypeChecking.TypeChecking import Letters, Dict, TYPE_CHECKING
+
 if TYPE_CHECKING:
     from widgets.main_widget import MainWidget
 
@@ -12,7 +21,7 @@ LETTER_SVG_DIR = "resources/images/letters/"
 
 
 class ButtonFrame(QFrame):
-    def __init__(self, main_widget: 'MainWidget') -> None:
+    def __init__(self, main_widget: "MainWidget") -> None:
         super().__init__()
         self.main_widget = main_widget
         self.interpolation_handler = main_widget.interpolation_handler
@@ -61,12 +70,27 @@ class ButtonFrame(QFrame):
                 button = self.create_button(icon_path)
                 row_layout.addWidget(button)
                 self.buttons[letter] = button
-                button.clicked.connect(lambda _, l=letter: self.interpolation_handler.update_sequence(l))
+                button.clicked.connect(
+                    lambda _, l=letter: self.interpolation_handler.update_sequence(l)
+                )
 
             letter_buttons_layout.addLayout(row_layout)
 
         self.letter_buttons_layout = letter_buttons_layout
         self.setLayout(letter_buttons_layout)
+
+    def update_button_appearance(self) -> None:
+        last_letter = (
+            self.interpolation_handler.get_last_letter()
+            if self.interpolation_handler.get_sequence()
+            else None
+        )
+        for letter, button in self.buttons.items():
+            is_valid = self.interpolation_handler.is_valid_next_letter(
+                last_letter, letter
+            )
+            button.setEnabled(is_valid)
+            self.animate_button(button, is_valid)
 
     def get_letter_type(self, letter: str) -> str:
         for letter_type in letter_types:
@@ -90,22 +114,31 @@ class ButtonFrame(QFrame):
             """
             QPushButton {
                 background-color: white;
+                color: white;
                 border: none;
-                border-radius: 0px;
-                padding: 0px;
+                border-radius: 5px;
+                padding: 10px;
             }
             QPushButton:hover {
-                background-color: #e6f0ff;
+                background-color: lightgray;
             }
             QPushButton:pressed {
-                background-color: #cce0ff;
+                background-color: teal;
+            }
+            QPushButton:disabled {
+                background-color: lightgray;
             }
             """
         )
         button.setFlat(True)
         font = QFont()
-        font.setPointSize(int(20))
+        font.setPointSize(14)
         button.setFont(font)
+        # Animation for enlarging and shrinking the button
+
+
+        button.installEventFilter(self)
+
         return button
 
     def update_letter_buttons_size(self) -> None:
@@ -139,3 +172,39 @@ class ButtonFrame(QFrame):
     def update_size(self) -> None:
         self.setFixedHeight(self.main_widget.height())
         self.update_letter_buttons_size()
+
+    def eventFilter(self, obj, event):
+        if isinstance(obj, QPushButton):
+            if event.type() == QEvent.Type.EnabledChange:
+                if obj.isEnabled():
+                    self.animate_button(obj, True)
+                else:
+                    self.animate_button(obj, False)
+        return super().eventFilter(obj, event)
+
+    def animate_button(self, button: QPushButton, enlarge):
+        current_geometry = button.geometry()
+        if enlarge:
+            new_geometry = QRect(
+                current_geometry.x() - 5,
+                current_geometry.y() - 5,
+                current_geometry.width() + 10,
+                current_geometry.height() + 10,
+            )
+            button.enlarge_animation.setEndValue(new_geometry)
+            button.enlarge_animation.start()
+        else:
+            new_geometry = QRect(
+                current_geometry.x() + 5,
+                current_geometry.y() + 5,
+                current_geometry.width() - 10,
+                current_geometry.height() - 10,
+            )
+            button.shrink_animation.setEndValue(new_geometry)
+            button.shrink_animation.start()
+            new_geometry = QRect(
+                current_geometry.x() + 5,
+                current_geometry.y() + 5,
+                current_geometry.width() - 10,
+                current_geometry.height() - 10,
+            )
