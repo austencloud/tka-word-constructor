@@ -24,7 +24,7 @@ class LetterButton(QPushButton):
             "background-color: #ffffff; border: 1px solid #000000; font-size: 20px;"
         )
 
-    def _setup_animations(self):
+    def _setup_animations(self) -> None:
         self.animation_adjustment = 5  # self.Adjustment for animation
 
         self.enlarge_animation = QPropertyAnimation(self, b"geometry")
@@ -35,7 +35,19 @@ class LetterButton(QPushButton):
         self.shrink_animation.setDuration(150)
         self.shrink_animation.setEasingCurve(QEasingCurve.Type.InQuad)
 
-    def animate_enlarge(self):
+
+    def set_enabled_and_style(self, is_enabled: bool):
+        self.setEnabled(is_enabled)
+        if is_enabled:
+            self.setStyleSheet("background-color: white; border: 1px solid #000000;")  # Style for enabled
+            if not self.is_enlarged:
+                self.animate_enlarge()
+        else:
+            self.setStyleSheet("background-color: darkgray; border: 1px solid #000000;")  # Style for disabled
+            if self.is_enlarged:
+                self.animate_shrink()
+
+    def animate_enlarge(self) -> None:
         if not self.is_enlarged:
             new_geometry = self.geometry().adjusted(
                 -self.animation_adjustment,
@@ -48,7 +60,7 @@ class LetterButton(QPushButton):
             self.enlarge_animation.start()
             self.is_enlarged = True
 
-    def animate_shrink(self):
+    def animate_shrink(self) -> None:
         if self.is_enlarged:
             new_geometry = self.geometry().adjusted(
                 self.animation_adjustment,
@@ -66,7 +78,7 @@ class LetterButton(QPushButton):
             QPushButton {
                 background-color: white;
                 color: white;
-                border: none;
+                border: 1px solid #000000;
                 border-radius: 5px;
                 padding: 10px;
             }

@@ -136,11 +136,7 @@ class ButtonFrame(QFrame):
             is_valid = self.interpolation_handler.is_valid_next_letter(
                 last_letter, letter
             )
-            button.setEnabled(is_valid)
-            if is_valid and not button.is_enlarged:
-                button.animate_enlarge()
-            elif not is_valid and button.is_enlarged:
-                button.animate_shrink()
+            button.set_enabled_and_style(is_valid)
 
     def update_button_frame_size(self) -> None:
         self.setFixedHeight(self.main_widget.height())
