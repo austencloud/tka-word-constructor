@@ -5,6 +5,7 @@ from PyQt6.QtGui import QResizeEvent
 
 from typing import TYPE_CHECKING
 from interpolation_handler import InterpolationHandler
+
 if TYPE_CHECKING:
     from main import MainWindow
 
@@ -31,4 +32,4 @@ class MainWidget(QWidget):
     def resizeEvent(self, event: QResizeEvent) -> None:
         super().resizeEvent(event)
         self.resize(int(self.main_window.width()), int(self.main_window.height()))
-        self.letter_buttons.update_size()
+        self.letter_buttons.update_button_frame_size()

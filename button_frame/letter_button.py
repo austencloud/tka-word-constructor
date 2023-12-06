@@ -1,25 +1,21 @@
 from PyQt6.QtWidgets import QPushButton
-from PyQt6.QtWidgets import QFrame, QVBoxLayout, QHBoxLayout, QPushButton
-from PyQt6.QtGui import QIcon, QPixmap, QPainter, QFont
+from PyQt6.QtWidgets import QPushButton
+from PyQt6.QtGui import QIcon, QFont
 from PyQt6.QtCore import (
     QPropertyAnimation,
-    QRect,
-    QSequentialAnimationGroup,
     QEasingCurve,
-    Qt,
-    QSize,
-    QEvent,
 )
-from PyQt6.QtGui import QColor
-from PyQt6.QtSvg import QSvgRenderer
-from data.letter_data import letter_types
-from TypeChecking.TypeChecking import Letters, Dict, TYPE_CHECKING
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from widgets.main_widget import MainWidget
 
 
 class LetterButton(QPushButton):
-    def __init__(self, letter, parent=None):
-        super().__init__(letter, parent)
-        self.letter = letter
+    def __init__(self, icon: QIcon, text: str, main_widget: "MainWidget") -> None:
+        super().__init__(icon, text, main_widget)
+        self._setup_button()
+
+    def _setup_button(self) -> None:
         self.setFixedSize(40, 40)
         self.setStyleSheet(
             "background-color: #ffffff; border: 1px solid #000000; font-size: 20px;"
@@ -31,3 +27,29 @@ class LetterButton(QPushButton):
         self.shrink_animation = QPropertyAnimation(self, b"geometry")
         self.shrink_animation.setDuration(150)
         self.shrink_animation.setEasingCurve(QEasingCurve.Type.InBack)
+
+        self.setStyleSheet(
+            """
+            QPushButton {
+                background-color: white;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                padding: 10px;
+            }
+            QPushButton:hover {
+                background-color: lightgray;
+            }
+            QPushButton:pressed {
+                background-color: teal;
+            }
+            QPushButton:disabled {
+                background-color: lightgray;
+            }
+            """
+        )
+        self.setFlat(True)
+        font = QFont()
+        font.setPointSize(14)
+        self.setFont(font)
+        self.installEventFilter(self)

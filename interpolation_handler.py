@@ -2,15 +2,17 @@ from typing import List, Tuple
 from PyQt6.QtCore import QObject, pyqtSignal
 import random
 from typing import TYPE_CHECKING, List, Tuple
+
 if TYPE_CHECKING:
     from widgets.main_widget import MainWidget
 from data.letter_data import positions, letters
+
 
 class InterpolationHandler(QObject):
     sequenceUpdated = pyqtSignal()
     savedWordsUpdated = pyqtSignal()
 
-    def __init__(self, main_widget: 'MainWidget') -> None:
+    def __init__(self, main_widget: "MainWidget") -> None:
         super().__init__()
         self.main_widget = main_widget
         self.sequence: List[
@@ -19,16 +21,12 @@ class InterpolationHandler(QObject):
         self.saved_words: List[List[Tuple[str, bool]]] = []
         self.auto_fill_mode: bool = False
 
-        
     def update_sequence(self, letter: str) -> None:
         if not self.sequence:
             self.sequence.append((letter, False))
         else:
             last_letter, _ = self.sequence[-1]
-            if (
-                positions[last_letter][1] == positions[letter][0]
-                or self.auto_fill_mode
-            ):
+            if positions[last_letter][1] == positions[letter][0] or self.auto_fill_mode:
                 if (
                     self.auto_fill_mode
                     and positions[last_letter][1] != positions[letter][0]
@@ -58,8 +56,10 @@ class InterpolationHandler(QObject):
     def is_valid_next_letter(self, last_letter, next_letter):
         if not last_letter:
             return True
-        return positions[last_letter][1] == positions[next_letter][0] or self.auto_fill_mode
-
+        return (
+            positions[last_letter][1] == positions[next_letter][0]
+            or self.auto_fill_mode
+        )
 
     def clear_sequence(self) -> None:
         self.sequence.clear()
@@ -83,7 +83,7 @@ class InterpolationHandler(QObject):
 
     def get_sequence(self) -> List[Tuple[str, bool]]:
         return self.sequence
-    
+
     def get_end_position(self, letter: str) -> str:
         position = positions[letter][1]
         return position.replace("alpha", "α").replace("beta", "β").replace("gamma", "Γ")
