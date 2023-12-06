@@ -13,6 +13,7 @@ from PyQt6.QtGui import QColor
 from PyQt6.QtSvg import QSvgRenderer
 from data.letter_data import letter_types
 from TypeChecking.TypeChecking import Letters, Dict, TYPE_CHECKING
+from button_frame.letter_button import LetterButton
 
 if TYPE_CHECKING:
     from widgets.main_widget import MainWidget
@@ -108,7 +109,7 @@ class ButtonFrame(QFrame):
         painter = QPainter(pixmap)
         renderer.render(painter)
         painter.end()
-        button = QPushButton(QIcon(pixmap), "", self.main_widget)
+        button = LetterButton(QIcon(pixmap), "", self.main_widget)
 
         button.setStyleSheet(
             """

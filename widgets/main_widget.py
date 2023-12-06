@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import QWidget, QHBoxLayout
-from widgets.button_frame import ButtonFrame
+from button_frame.button_frame import ButtonFrame
 from widgets.results_frame import ResultsFrame
 from PyQt6.QtGui import QResizeEvent
 
